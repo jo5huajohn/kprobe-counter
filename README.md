@@ -27,3 +27,7 @@ btrfs_rename
 ## Run
 
 - `sudo src/counter`
+
+## Generated Report
+
+![image](resources/report.png)
