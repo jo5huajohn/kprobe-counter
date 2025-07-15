@@ -1,0 +1,6 @@
+counter
+src/tracer.bpf.c
+src/tracer.bpf.o
+src/tracer.h
+src/tracer.skel.h
+src/vmlinux.h

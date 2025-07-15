@@ -1,0 +1,10 @@
+btrfs_lookup
+btrfs_getattr
+btrfs_setattr
+btrfs_file_read_iter
+btrfs_file_write_iter
+btrfs_sync_file
+btrfs_create
+btrfs_unlink
+btrfs_mkdir
+btrfs_rename
