@@ -1,3 +1,4 @@
+btrfs_fallocate
 btrfs_lookup
 btrfs_getattr
 btrfs_setattr

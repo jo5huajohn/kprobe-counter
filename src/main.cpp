@@ -45,6 +45,7 @@ int main() {
 		sleep(1);
 	}
 
+	printf("\n");
 	for (unsigned int fn = 0; fn < NUM_KSYMS; fn++) {
 		ret = bpf_map__lookup_elem(skel->maps.syscall_count, &fn, sizeof(uint32_t), &value, sizeof(uint64_t), 0);
 		if (!ret) {
