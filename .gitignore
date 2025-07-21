@@ -1,4 +1,5 @@
-counter
+.vagrant/
+src/counter
 src/tracer.bpf.c
 src/tracer.bpf.o
 src/tracer.h
