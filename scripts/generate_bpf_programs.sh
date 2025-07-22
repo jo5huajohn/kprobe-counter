@@ -77,7 +77,8 @@ int increment_counter(u32 key, struct pt_regs *ctx) {
 
 	struct file *file = (struct file *)PT_REGS_PARM1(ctx);
 	struct inode *inode = BPF_CORE_READ(file, f_inode);
-	dev_t dev = BPF_CORE_READ(inode, i_rdev);
+	struct super_block *sb = BPF_CORE_READ(inode, i_sb);
+	dev_t dev = BPF_CORE_READ(sb, s_dev);
 
 	u32 major = dev >> 20;
 	u32 minor = dev & 0xfffff;
