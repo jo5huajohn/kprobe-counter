@@ -3,6 +3,7 @@ PROJECT := counter
 CLANG ?= clang
 BPFTOOL ?= bpftool
 CC ?= $(CLANG)
+CXX ?= clang++
 
 ARCH = $(shell uname -m | sed 's/x86_64/x86/' \
 	   					| sed 's/aarch64/arm64/')
@@ -39,8 +40,8 @@ $(BPF_SKEL): $(BPF_OBJ)
 	@$(BPFTOOL) gen skeleton $< > $@
 
 $(BIN): $(SRC) $(BPF_SKEL)
-	@echo "  CC      $@"
-	@$(CC) $(CFLAGS) -I$(SRC_DIR) -o $@ $< $(LDFLAGS)
+	@echo "  CXX     $@"
+	@$(CXX) $(CFLAGS) -I$(SRC_DIR) -o $@ $< $(LDFLAGS)
 
 clean:
 	@echo "  CLEAN"

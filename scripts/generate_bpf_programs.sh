@@ -41,14 +41,23 @@ EOF
 }
 
 generate_bpf_program() {
-	local it=0
-		cat > "src/$FILE_HDR.bpf.c" <<EOF
+	cat > "src/$FILE_HDR.bpf.c" <<EOF
 #include "vmlinux.h"
+#include <bpf/bpf_core_read.h>
 #include <bpf/bpf_helpers.h>
+#include <bpf/bpf_tracing.h>
 
+#include "iofilter.h"
 #include "tracer.h"
 
 char LICENSE[] SEC("license") = "Dual BSD/GPL";
+
+struct {
+	__uint(type, BPF_MAP_TYPE_HASH);
+	__type(key, u32);
+	__type(value, struct iofilter_dev);
+	__uint(max_entries, 1);
+} iofilter SEC(".maps");
 
 struct { 
 	__uint(type, BPF_MAP_TYPE_HASH);
@@ -57,8 +66,25 @@ struct {
 	__uint(max_entries, NUM_KSYMS);
 } syscall_count SEC(".maps");
 
-int increment_counter(u32 key) { 
+int increment_counter(u32 key, struct pt_regs *ctx) {
 	static const u64 init = 1;
+	static const u64 dev_key = 0;
+
+	struct iofilter_dev *iodev = bpf_map_lookup_elem(&iofilter, &dev_key);
+	if (!iodev) {
+		return 0;
+	}
+
+	struct file *file = (struct file *)PT_REGS_PARM1(ctx);
+	struct inode *inode = BPF_CORE_READ(file, f_inode);
+	dev_t dev = BPF_CORE_READ(inode, i_rdev);
+
+	u32 major = dev >> 20;
+	u32 minor = dev & 0xfffff;
+
+	if ((iodev->major != major) || (iodev->minor != minor)) {
+		return 0;
+	}
 
 	u64 *val = bpf_map_lookup_elem(&syscall_count, &key);
 	if (val) { 
@@ -76,11 +102,10 @@ EOF
 		cat >> "src/$FILE_HDR.bpf.c" <<EOF
 
 SEC("kprobe/$line")
-int BPF_KPROBE_$it(struct pt_regs *ctx) { 
-	return increment_counter(${modified//./__});
+int kprobe_$line(struct pt_regs *ctx) {
+	return increment_counter(${modified//./__}, ctx);
 }
 EOF
-	((it++))
 	done <<< "$(cat "$FILE_KSYMS")"
 }
 
