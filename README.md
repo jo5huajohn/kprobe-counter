@@ -34,7 +34,7 @@ If running inside toolbx containers, this [Containerfile](https://github.com/jo5
 
 ## Run
 
-- `sudo src/counter`
+- `sudo src/counter <path to block device>`
 
 ## Generated Report
 
