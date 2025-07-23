@@ -53,6 +53,8 @@ Vagrant.configure("2") do |config|
   # shown above.
   config.vm.synced_folder ".", "/vagrant", disabled: true
 
+  config.ssh.extra_args = ["-t", "cd /home/vagrant/kprobe-counter; bash --login"]
+
   # Provider-specific configuration so you can fine-tune various
   # backing providers for Vagrant. These expose provider-specific options.
   # Example for VirtualBox:
