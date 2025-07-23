@@ -2,7 +2,7 @@ PROJECT := counter
 
 BPFTOOL = bpftool
 CC = clang
-CXX = $(CC) -x c++
+CXX = clang++
 
 ARCH = $(shell uname -m | sed 's/x86_64/x86/' \
 	   					| sed 's/aarch64/arm64/')
