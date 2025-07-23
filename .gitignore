@@ -1,4 +1,6 @@
+.cache/
 .vagrant/
+compile_commands.json
 src/counter
 src/tracer.bpf.c
 src/tracer.bpf.o

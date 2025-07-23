@@ -1,8 +1,8 @@
 PROJECT := counter
 
-CLANG ?= clang
-BPFTOOL ?= bpftool
-CC ?= $(CLANG)
+BPFTOOL = bpftool
+CC = clang
+CXX = $(CC) -x c++
 
 ARCH = $(shell uname -m | sed 's/x86_64/x86/' \
 	   					| sed 's/aarch64/arm64/')
@@ -32,16 +32,16 @@ $(VMLINUX):
 
 $(BPF_OBJ): $(BPF_PROG) $(VMLINUX)
 	@echo "  CLANG   $@"
-	@$(CLANG) $(CLANG_BPF_FLAGS) -c $< -o $@
+	@$(CC) $(CLANG_BPF_FLAGS) -c $< -o $@
 
 $(BPF_SKEL): $(BPF_OBJ)
 	@echo "  SKEL    $@"
 	@$(BPFTOOL) gen skeleton $< > $@
 
 $(BIN): $(SRC) $(BPF_SKEL)
-	@echo "  CC      $@"
-	@$(CC) $(CFLAGS) -I$(SRC_DIR) -o $@ $< $(LDFLAGS)
+	@echo "  CXX     $@"
+	@$(CXX) $(CFLAGS) -I$(SRC_DIR) -o $@ $< $(LDFLAGS)
 
 clean:
 	@echo "  CLEAN"
-	@rm $(BPF_SKEL) $(VMLINUX) $(SRC_DIR)/*.o $(BPF_PROG) src/tracer.h $(BIN)
+	@$(RM) $(BPF_SKEL) $(VMLINUX) $(SRC_DIR)/*.o $(BPF_PROG) src/tracer.h $(BIN)
