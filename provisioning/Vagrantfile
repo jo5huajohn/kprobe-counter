@@ -51,7 +51,7 @@ Vagrant.configure("2") do |config|
   # by making sure your Vagrantfile isn't accessible to the vagrant box.
   # If you use this you may want to enable additional shared subfolders as
   # shown above.
-  config.vm.synced_folder ".", "/vagrant", disabled: true
+  # config.vm.synced_folder ".", "/vagrant", disabled: true
 
   config.ssh.extra_args = ["-t", "cd /home/vagrant/kprobe-counter; bash --login"]
 
@@ -70,21 +70,15 @@ Vagrant.configure("2") do |config|
   # View the documentation for the provider you are using for more
   # information on available options.
 
+  config.vm.provision "ansible_local" do |ansible|
+    ansible.playbook = "ansible/playbook.yml"
+  end
+
   # Enable provisioning with a shell script. Additional provisioners such as
   # Ansible, Chef, Docker, Puppet and Salt are also available. Please see the
   # documentation for more information about their specific syntax and use.
-  config.vm.provision "shell", run: "always", inline: <<-SHELL
-    apt-get update
-    apt-get install -y \
-      bpftool \
-      clang \
-      fio \
-      git \
-      libbpf-dev \
-      linux-headers-amd64 \
-      make \
-      vim
-    echo "PATH=/usr/sbin:$PATH" >> /home/vagrant/.bashrc
-    git clone https://github.com/jo5huajohn/kprobe-counter.git
-  SHELL
+  # config.vm.provision "shell", inline: <<-SHELL
+  #   apt-get update
+  #   apt-get install -y apache2
+  # SHELL
 end

@@ -1,0 +1,39 @@
+---
+- name: Provision kprobe-counter
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install required packages
+      ansible.builtin.apt:
+        name:
+          - bpftool
+          - clang
+          - fio
+          - git
+          - libbpf-dev
+          - linux-headers-amd64
+          - make
+          - vim
+        state: present
+
+    - name: Install kprobe-counter
+      ansible.builtin.git:
+        repo: 'https://github.com/jo5huajohn/kprobe-counter.git'
+        dest: /home/vagrant/kprobe-counter
+        version: main
+
+    - name: Set kprobe-counter owner
+      ansible.builtin.file:
+        path: /home/vagrant/kprobe-counter
+        owner: vagrant
+        state: directory
+        recurse: yes
+
+    - name: Include sbin in PATH
+      ansible.builtin.shell: echo "PATH=/usr/sbin:$PATH" >> /home/vagrant/.bashrc
