@@ -1,8 +1,8 @@
 PROJECT := counter
 
-CLANG ?= clang
-BPFTOOL ?= bpftool
-CXX ?= clang++
+BPFTOOL = bpftool
+CC = clang
+CXX = $(CC) -x c++
 
 ARCH = $(shell uname -m | sed 's/x86_64/x86/' \
 	   					| sed 's/aarch64/arm64/')
@@ -32,7 +32,7 @@ $(VMLINUX):
 
 $(BPF_OBJ): $(BPF_PROG) $(VMLINUX)
 	@echo "  CLANG   $@"
-	@$(CLANG) $(CLANG_BPF_FLAGS) -c $< -o $@
+	@$(CC) $(CLANG_BPF_FLAGS) -c $< -o $@
 
 $(BPF_SKEL): $(BPF_OBJ)
 	@echo "  SKEL    $@"
