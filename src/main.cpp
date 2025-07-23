@@ -18,8 +18,6 @@ static void signal_handler(int sig) {
 
 int main(int argc, char *argv[]) {
 	int ret = 0;
-	uint64_t value = 0;
-	struct stat sb;
 
 	if (argc != 2) {
 		std::cerr << "Usage: " << argv[0] << " <block device>" << std::endl;
@@ -31,10 +29,11 @@ int main(int argc, char *argv[]) {
 	struct rlimit r = { RLIM_INFINITY, RLIM_INFINITY };
 	setrlimit(RLIMIT_MEMLOCK, &r);
 
+	struct stat sb;
 	ret = lstat(argv[1], &sb);
 	if (ret) {
-		std::cerr << "stat: " << strerror(errno);
-		return 1;
+		std::cerr << "stat: " << strerror(errno) << std::endl;
+		return ret;
 	}
 
 	struct tracer_bpf *skel = tracer_bpf__open();
@@ -43,39 +42,39 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
-	ret = tracer_bpf__load(skel);
-	if (ret) {
-		std::cerr << "Failed to load eBPF skeleton" << std::endl;
-		tracer_bpf__destroy(skel);
-		return 1;
-	}
-
+	/* Get the major and minor numbers of the block device */
 	if (S_ISBLK(sb.st_mode)) {
 		struct iofilter_dev iodev;
 		iodev.major = major(sb.st_rdev);
 		iodev.minor = minor(sb.st_rdev);
-
-		int key = 0;
-		bpf_map__update_elem(skel->maps.iofilter, &key, sizeof(int), &iodev, sizeof(struct iofilter_dev), BPF_NOEXIST);
+		skel->rodata->g_iodev = iodev;
 	} else {
 		std::cerr << argv[1] << " is not a block device" << std::endl;
 		tracer_bpf__destroy(skel);
-		return 1;
+		return ret;
+	}
+
+	ret = tracer_bpf__load(skel);
+	if (ret) {
+		std::cerr << "Failed to load eBPF skeleton" << std::endl;
+		tracer_bpf__destroy(skel);
+		return ret;
 	}
 
 	ret = tracer_bpf__attach(skel);
 	if (ret) {
 		std::cerr << "Failed to attach eBPF programs" << std::endl;
 		tracer_bpf__destroy(skel);
-		return 1;
+		return ret;
 	}
 
 	while (!g_terminate) {
 		sleep(1);
 	}
 
+	uint64_t value = 0;
 	std::cout << std::endl;
-	for (unsigned int fn = 0; fn < NUM_KSYMS; fn++) {
+	for (uint32_t fn = 0; fn < NUM_KSYMS; fn++) {
 		ret = bpf_map__lookup_elem(skel->maps.syscall_count, &fn, sizeof(uint32_t), &value, sizeof(uint64_t), 0);
 		if (!ret) {
 			std::cout << ksyms_enum_to_string(static_cast<enum ksyms>(fn)) << ": " << value << std::endl;

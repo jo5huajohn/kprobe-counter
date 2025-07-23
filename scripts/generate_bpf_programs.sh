@@ -66,24 +66,27 @@ struct {
 	__uint(max_entries, NUM_KSYMS);
 } syscall_count SEC(".maps");
 
-int increment_counter(u32 key, struct pt_regs *ctx) {
-	static const u64 init = 1;
-	static const u64 dev_key = 0;
+const volatile struct iofilter_dev g_iodev SEC(".rodata");
 
-	struct iofilter_dev *iodev = bpf_map_lookup_elem(&iofilter, &dev_key);
-	if (!iodev) {
-		return 0;
-	}
+static u32 __always_inline get_major(dev_t dev) {
+	return (dev >> 20) & 0xfff;
+}
+
+static u32 __always_inline get_minor(dev_t dev) {
+	return dev & 0xfffff;
+}
+
+static int increment_counter(u32 key, struct pt_regs *ctx) {
+	static const u64 init = 1;
 
 	struct file *file = (struct file *)PT_REGS_PARM1(ctx);
 	struct inode *inode = BPF_CORE_READ(file, f_inode);
 	struct super_block *sb = BPF_CORE_READ(inode, i_sb);
 	dev_t dev = BPF_CORE_READ(sb, s_dev);
 
-	u32 major = dev >> 20;
-	u32 minor = dev & 0xfffff;
-
-	if ((iodev->major != major) || (iodev->minor != minor)) {
+	u32 major = get_major(dev);
+	u32 minor = get_minor(dev);
+	if ((g_iodev.major != major) || (g_iodev.minor != minor)) {
 		return 0;
 	}
 
