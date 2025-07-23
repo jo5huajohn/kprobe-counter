@@ -2,7 +2,6 @@ PROJECT := counter
 
 CLANG ?= clang
 BPFTOOL ?= bpftool
-CC ?= $(CLANG)
 CXX ?= clang++
 
 ARCH = $(shell uname -m | sed 's/x86_64/x86/' \
@@ -45,4 +44,4 @@ $(BIN): $(SRC) $(BPF_SKEL)
 
 clean:
 	@echo "  CLEAN"
-	@rm $(BPF_SKEL) $(VMLINUX) $(SRC_DIR)/*.o $(BPF_PROG) src/tracer.h $(BIN)
+	@$(RM) $(BPF_SKEL) $(VMLINUX) $(SRC_DIR)/*.o $(BPF_PROG) src/tracer.h $(BIN)
